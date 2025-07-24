@@ -2,6 +2,18 @@ import argparse
 import logging
 import os
 
+
+def load_api_key(path: str) -> str:
+    """Load an API key from a file."""
+    try:
+        with open(path, "r", encoding="utf-8") as fp:
+            key = fp.read().strip()
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"API key file '{path}' not found") from exc
+    if not key:
+        raise RuntimeError(f"API key file '{path}' is empty")
+    return key
+
 import openai
 from pdfminer.high_level import extract_text
 
@@ -18,10 +30,8 @@ def ask_openai_about_pdf(pdf_path: str, question: str) -> str:
     text = extract_pdf_text(pdf_path)
 
     logging.info("Sending request to OpenAI API")
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY environment variable not set")
-    openai.api_key = api_key
+    api_key_path = os.path.join(os.path.dirname(__file__), "api_key")
+    openai.api_key = load_api_key(api_key_path)
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
