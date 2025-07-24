@@ -31,7 +31,7 @@ def ask_openai_about_pdf(pdf_path: str, question: str) -> str:
 
     logging.info("Sending request to OpenAI API")
     api_key_path = os.path.join(os.path.dirname(__file__), "api_key")
-    openai.api_key = load_api_key(api_key_path)
+    client = openai.OpenAI(api_key=load_api_key(api_key_path))
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
@@ -41,9 +41,11 @@ def ask_openai_about_pdf(pdf_path: str, question: str) -> str:
         },
     ]
 
-    response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo", messages=messages
+    )
     logging.info("Received response from OpenAI")
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
 
 def main() -> None:
